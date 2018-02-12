@@ -1,0 +1,28 @@
+template = imread('cartemplate.jpg');
+template = mean2(template) - template;
+template = imresize(template,[100, 400]);
+template = imrotate(template,180);
+templates{count} = imresize(flip(template,2), [h w]);
+
+im = imread('car1.jpg');
+im2 = im;
+im = mean2(im) - im;
+heatmap = conv2(double(im),double(template),'same');
+ma = max(heatmap(:));
+mi = min(heatmap(:));
+heatmap = (heatmap-mi)/(ma-mi)*255;
+figure,imagesc(heatmap);
+colormap('jet');
+[values, indices] = sort(heatmap(:), 'descend');
+[p, q] = ind2sub(size(heatmap), indices);
+figure,imshow(im2);
+hold on;
+rectangle('Position',[q(1)-size(template,2)/2, p(1)-size(template,1)/2, size(template,2), size(template,1)], 'EdgeColor', 'b');
+rectangle('Position',[175, 145, 522-175, 245-145],'EdgeColor', 'g');
+detect_rect = [q(1)-size(template,2)/2, p(1)-size(template,1)/2, size(template,2), size(template,1)];
+gt_rect = [175, 145, 522-175, 245-145];
+intersection_area = rectint(gt_rect, detect_rect);
+detect_area = detect_rect(3)*detect_rect(4);
+gt_area = gt_rect(3)*gt_rect(4);
+iou = intersection_area/(detect_area+gt_area-intersection_area);
+disp(iou);
